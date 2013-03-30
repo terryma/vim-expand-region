@@ -21,8 +21,8 @@ Press ```+``` to expand the visual selection and ```_``` to shrink it.
 Customize the key mapping if you don't like the default.
 
 ```
-map K <Plug>ExpandRegion
-map J <Plug>ShrinkRegion
+map K <Plug>(expand_region_expand)
+map J <Plug>(expand_region_shrink)
 ```
 
 ## Setting
