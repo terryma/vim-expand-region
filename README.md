@@ -34,11 +34,24 @@ let g:expand_region_text_objects = {
   'i]'  :1, " Support nesting of square brackets
   'ib'  :1, " Support nesting of parentheses
   'iB'  :1, " Support nesting of braces
-  'il'  :0, " Not included in Vim by default. See https://github.com/kana/vim-textobj-line
+  'il'  :0, " 'inside line'. Not included in Vim by default. See https://github.com/kana/vim-textobj-line
   'ip'  :0,
-  'ie'  :0  " Not included in Vim by default. See https://github.com/kana/vim-textobj-entire
+  'ie'  :0  " 'entire file'. Not included in Vim by default. See https://github.com/kana/vim-textobj-entire
 }
 ```
+
+Replace it completely or extend the default by putting the following in your vimrc:
+
+```vim
+" Extend the text object dictionary (NOTE: Remove comments in dictionary before sourcing)
+call expand_region#custom_text_objects({
+      \ "\/\\n\\n\<CR>": 1, " If you're really crazy, you could supply search patterns. They're also text objects.
+      \ 'a]'  :1, " Support nesting of 'around' brackets
+      \ 'ab'  :1, " Support nesting of 'around' parentheses
+      \ 'aB'  :1, " Support nesting of 'around' braces
+      \ 'ii'  :0, " 'inside indent'. Not included in Vim by default. See https://github.com/kana/vim-textobj-indent
+      \ 'ai'  :0, " 'around indent'. Not included in Vim by default. See https://github.com/kana/vim-textobj-indent
+      \})
 
 [vim-expand-region]:http://github.com/terryma/vim-expand-region
 [Pathogen]:http://github.com/tpope/vim-pathogen

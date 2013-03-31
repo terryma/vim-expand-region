@@ -1,9 +1,7 @@
 " ==============================================================================
-" File: expand-region.vim
+" File: expand_region.vim
 " Author: Terry Ma
-" Description: Incrementally select larger regions of text in visual mode by
-" repeating the same key combination
-" Last Modified: March 29, 2013
+" Last Modified: March 30, 2013
 " License: MIT license
 "     Permission is hereby granted, free of charge, to any person obtaining
 "     a copy of this software and associated documentation files (the
@@ -29,21 +27,6 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " ==============================================================================
-" Mappings
-" ==============================================================================
-if !hasmapto('<Plug>(expand_region_expand)')
-  nmap + <Plug>(expand_region_expand)
-  vmap + <Plug>(expand_region_expand)
-endif
-if !hasmapto('<Plug>(expand_region_shrink)')
-  vmap _ <Plug>(expand_region_shrink)
-  nmap _ <Plug>(expand_region_shrink)
-endif
-nnoremap <silent> <Plug>(expand_region_expand) :<C-U>call <SID>expand_region('n', '+')<CR>
-vnoremap <silent> <Plug>(expand_region_expand) :<C-U>call <SID>expand_region('v', '+')<CR>
-vnoremap <silent> <Plug>(expand_region_shrink) :<C-U>call <SID>expand_region('v', '-')<CR>
-
-" ==============================================================================
 " Settings
 " ==============================================================================
 if !exists('g:expand_region_text_objects')
@@ -63,6 +46,20 @@ if !exists('g:expand_region_text_objects')
         \ 'ie'  :0,
         \}
 endif
+
+" ==============================================================================
+" Global Functions
+" ==============================================================================
+
+" Allow user to customize the global dictionary
+function! expand_region#custom_text_objects(text_objects)
+  call extend(g:expand_region_text_objects, a:text_objects)
+endfunction
+
+" Main function
+function! expand_region#next(mode, direction)
+  call s:expand_region(a:mode, a:direction)
+endfunction
 
 " ==============================================================================
 " Variables
@@ -127,7 +124,7 @@ function! s:get_candidate_dict(text_object)
 
   " Use ! as much as possible
   exec 'normal! v'
-  exec 'normal '.a:text_object
+  exec 'silent! normal '.a:text_object
   " The double quote is important
   exec "normal! \<Esc>"
 
@@ -143,11 +140,16 @@ function! s:get_candidate_dict(text_object)
   return ret
 endfunction
 
+
 " Return list of candidate dictionary. Each dictionary contains the following:
 " text_object: The actual text object string
 " start_pos: The result of getpos() on the starting position of the text object
 " length: The number of characters for the text object
 function! s:get_candidate_list()
+  " Turn off wrap to allow recursive search to work without triggering errors
+  let save_wrapscan = &wrapscan
+  set nowrapscan
+
   " Generate the candidate list for every defined text object
   let candidates = keys(g:expand_region_text_objects)
   call map(candidates, "s:get_candidate_dict(v:val)")
@@ -181,6 +183,9 @@ function! s:get_candidate_list()
       let previous = candidate.length
     endwhile
   endfor
+
+  " Restore wrapscan
+  let &wrapscan = save_wrapscan
 
   return extend(candidates, recursive_candidates)
 endfunction
