@@ -56,6 +56,7 @@ call expand_region#custom_text_objects({
       \ 'ii'  :0, " 'inside indent'. Not included in Vim by default. See https://github.com/kana/vim-textobj-indent
       \ 'ai'  :0, " 'around indent'. Not included in Vim by default. See https://github.com/kana/vim-textobj-indent
       \})
+```
 
 [vim-expand-region]:http://github.com/terryma/vim-expand-region
 [Pathogen]:http://github.com/tpope/vim-pathogen
