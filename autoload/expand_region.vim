@@ -122,6 +122,24 @@ function! s:get_candidate_dict(text_object)
 endfunction
 
 
+" Return dictionary of text objects that are to be used for the current
+" filetype. Filetype-specific dictionaries will be loaded if they exist
+" and the global dictionary will be used as a fallback.
+function! s:get_configuration()
+  let configuration = {}
+  for ft in split(&ft, '\.')
+    if exists("g:expand_region_text_objects_".ft)
+      call extend(configuration, g:expand_region_text_objects_{ft})
+    endif
+  endfor
+
+  if empty(configuration)
+    call extend(configuration, g:expand_region_text_objects)
+  endif
+
+  return configuration
+endfunction
+
 " Return list of candidate dictionary. Each dictionary contains the following:
 " text_object: The actual text object string
 " start_pos: The result of getpos() on the starting position of the text object
@@ -131,8 +149,10 @@ function! s:get_candidate_list()
   let save_wrapscan = &wrapscan
   set nowrapscan
 
+  let config = s:get_configuration()
+
   " Generate the candidate list for every defined text object
-  let candidates = keys(g:expand_region_text_objects)
+  let candidates = keys(config)
   call map(candidates, "s:get_candidate_dict(v:val)")
 
   " For the ones that are recursive, generate them until they no longer match
@@ -140,7 +160,7 @@ function! s:get_candidate_list()
   let recursive_candidates = []
   for i in candidates
     " Continue if not recursive
-    if !g:expand_region_text_objects[i.text_object]
+    if !config[i.text_object]
       continue
     endif
     " If the first level is already empty, no point in going any further
