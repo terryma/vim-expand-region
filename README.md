@@ -32,7 +32,7 @@ The plugin uses __your own__ text objects to determine the expansion. You can cu
 " Default
 let g:expand_region_text_objects = {
   'iw'  :0,
-  'iW'  :1,
+  'iW'  :0,
   'i"'  :0,
   'i''' :0,
   'i]'  :1, " Support nesting of square brackets

@@ -48,6 +48,7 @@ Customize the key mappings if you don't like the default. >
 
 ==============================================================================
 4. Global Options                               *expand-region-global-options*
+==============================================================================
 
                                                 *'expand_region_text_objects'*
 Default: See below
@@ -58,7 +59,7 @@ continually expanded until the region no longer gets larger. >
 
     let g:expand_region_text_objects = {
           \ 'iw'  :0,
-          \ 'iW'  :1,
+          \ 'iW'  :0,
           \ 'i"'  :0,
           \ 'i''' :0,
           \ 'i]'  :1, " Support nesting of square brackets
@@ -83,6 +84,7 @@ vimrc: >
 
 ==============================================================================
 6. About                                                 *expand-region-about*
+==============================================================================
 
 Find the latest version of the plugin here:
     http://github.com/terryma/vim-expand-region
