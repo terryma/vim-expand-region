@@ -81,18 +81,12 @@ function! s:sort_text_object(l, r)
   return a:l.length - a:r.length
 endfunction
 
-" Compare two position arrays. Each input is the result of getpos(). Return -1
-" if lhs occurs before rhs, 1 if after, and 0 if they are the same.
+" Compare two position arrays. Each input is the result of getpos(). Return a
+" negative value if lhs occurs before rhs, positive value if after, and 0 if
+" they are the same.
 function! s:compare_pos(l, r)
-  if a:l[1] ==# a:r[1]
-    " If number lines are the same, compare columns
-    if a:l[2] ==# a:r[2]
-      return 0
-    endif
-    return a:l[2] - a:r[2] < 0 ? -1 : 1
-  else
-    return a:l[1] - a:r[1] < 0 ? -1 : 1
-  endif
+  " If number lines are the same, compare columns
+  return a:l[1] ==# a:r[1] ? a:l[2] - a:r[2] : a:l[1] - a:r[1]
 endfunction
 
 " Boundary check on the cursor position to make sure it's inside the text object
