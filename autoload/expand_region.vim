@@ -32,9 +32,17 @@ endif
 " Global Functions
 " ==============================================================================
 
-" Allow user to customize the global dictionary
-function! expand_region#custom_text_objects(text_objects)
-  call extend(g:expand_region_text_objects, a:text_objects)
+" Allow user to customize the global dictionary, or the per file type dictionary
+function! expand_region#custom_text_objects(...)
+  if a:0 == 1
+    call extend(g:expand_region_text_objects, a:1)
+  elseif a:0 == 2
+    if !exists("g:expand_region_text_objects_".a:1)
+      let g:expand_region_text_objects_{a:1} = {}
+      call extend(g:expand_region_text_objects_{a:1}, g:expand_region_text_objects)
+    endif
+    call extend(g:expand_region_text_objects_{a:1}, a:2)
+  endif
 endfunction
 
 " Main function
