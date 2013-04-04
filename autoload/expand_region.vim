@@ -68,6 +68,7 @@ let s:cur_index = -1
 " Each item is a dictionary containing the following:
 " text_object: The actual text object string
 " start_pos: The result of getpos() on the starting position of the text object
+" end_pos: The result of getpos() on the ending position of the text object
 " length: The number of characters for the text object
 let s:candidates = []
 
@@ -80,14 +81,30 @@ function! s:sort_text_object(l, r)
   return a:l.length - a:r.length
 endfunction
 
-" Compare the relative positions of two text object regions. Return false if the
-" rhs starts later in the buffer than the lhs.
+" Compare two position arrays. Each input is the result of getpos(). Return -1
+" if lhs occurs before rhs, 1 if after, and 0 if they are the same.
 function! s:compare_pos(l, r)
   if a:l[1] ==# a:r[1]
     " If number lines are the same, compare columns
-    return a:l[2] - a:r[2] < 0 ? 0 : 1
+    if a:l[2] ==# a:r[2]
+      return 0
+    endif
+    return a:l[2] - a:r[2] < 0 ? -1 : 1
   else
-    return a:l[1] - a:r[1] < 0 ? 0 : 1
+    return a:l[1] - a:r[1] < 0 ? -1 : 1
+  endif
+endfunction
+
+" Boundary check on the cursor position to make sure it's inside the text object
+" region. Return 1 if the cursor is within range, 0 otherwise.
+function! s:is_cursor_inside(pos, region)
+  if s:compare_pos(a:pos, a:region.start_pos) < 0
+    return 0
+  endif
+  if s:compare_pos(a:pos, a:region.end_pos) > 0
+    return 0
+  endif
+  return 1
 endfunction
 
 " Remove duplicates from the candidate list. Two candidates are duplicates if
@@ -106,6 +123,7 @@ endfunction
 " Return a single candidate dictionary. Each dictionary contains the following:
 " text_object: The actual text object string
 " start_pos: The result of getpos() on the starting position of the text object
+" end_pos: The result of getpos() on the ending position of the text object
 " length: The number of characters for the text object
 function! s:get_candidate_dict(text_object)
   " Store the current view so we can restore it at the end
@@ -121,6 +139,7 @@ function! s:get_candidate_dict(text_object)
   let ret = {
         \ "text_object": a:text_object,
         \ "start_pos": selection.start_pos,
+        \ "end_pos": selection.end_pos,
         \ "length": selection.length,
         \}
 
@@ -199,17 +218,19 @@ function! s:get_candidate_list()
   return extend(candidates, recursive_candidates)
 endfunction
 
-" Return a dictionary containing the start position and length of the current
-" visual selection.
+" Return a dictionary containing the start position, end position and length of
+" the current visual selection.
 function! s:get_visual_selection()
   let start_pos = getpos("'<")
+  let end_pos = getpos("'>")
   let [lnum1, col1] = start_pos[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
+  let [lnum2, col2] = end_pos[1:2]
   let lines = getline(lnum1, lnum2)
   let lines[-1] = lines[-1][: col2 - 1]
   let lines[0] = lines[0][col1 - 1:]
   return {
         \ 'start_pos': start_pos,
+        \ 'end_pos': end_pos,
         \ 'length': len(join(lines, "\n"))
         \}
 endfunction
@@ -246,9 +267,10 @@ function! s:compute_candidates(cursor_pos)
   " Sort them and remove the ones with 0 or 1 length
   call filter(sort(s:candidates, "s:sort_text_object"), 'v:val.length > 1')
 
-  " Filter out the ones where the start of the text object is after the cursor
-  " position, i", and i' can cause this
-  call filter(s:candidates, 's:compare_pos(s:saved_pos, v:val.start_pos)')
+  " Filter out the ones where the cursor falls outside of its region. i" and i'
+  " can start after the cursor position, and ib can start before, so both checks
+  " are needed
+  call filter(s:candidates, 's:is_cursor_inside(s:saved_pos, v:val)')
 
   " Remove duplicates
   call s:remove_duplicate(s:candidates)
