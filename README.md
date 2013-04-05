@@ -26,6 +26,7 @@ map J <Plug>(expand_region_shrink)
 ```
 
 ## Setting
+### Customize selected regions
 The plugin uses __your own__ text objects to determine the expansion. You can customize the text objects the plugin knows about with ```g:expand_region_text_objects```.
 
 ```vim
@@ -76,6 +77,13 @@ call expand_region#custom_text_objects('ruby', {
       \ 'im' :0,
       \ 'am' :0,
       \ })
+```
+
+### Customize selection mode
+By default, after an expansion, the plugin leaves you in visual mode. If your ```selectmode```(h:selectmode)) contains ```cmd```, then the plugin will respect that setting and leave you in select mode. If you don't have ```selectmode``` set, but would like to default the expansion in select mode, you can use the global setting below:
+
+```vim
+let g:expand_region_use_select_mode = 1
 ```
 
 [vim-expand-region]:http://github.com/terryma/vim-expand-region

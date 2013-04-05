@@ -22,8 +22,8 @@ CONTENTS                                              *expand-region-contents*
 ==============================================================================
 1. Intro                                                 *expand-region-intro*
 
-vim-expand-regions brings the incremental visual selection feature from other
-text editors into Vim.
+*vim-expand-regions* brings the incremental visual selection feature from
+other text editors into Vim.
 
 Emac's 'expand-region': https://github.com/magnars/expand-region.el
 IntellJ's 'syntax aware selection':
@@ -104,6 +104,16 @@ argument: >
           \ 'im' :0,
           \ 'am' :0,
           \ })
+<
+                                               *expand_region_use_select_mode*
+Default: 0
+By default, after an expansion, the plugin leaves you in visual mode. If your
+'selectmode' contains "cmd", then the plugin will respect that setting and
+leave you in select mode. If you don't have 'selectmode' set, but would
+like to default the expansion in select mode, you can use the global setting
+below: >
+
+    let g:expand_region_use_select_mode = 1
 <
 
 ==============================================================================

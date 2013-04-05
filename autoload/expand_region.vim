@@ -10,23 +10,34 @@ set cpo&vim
 " ==============================================================================
 " Settings
 " ==============================================================================
-if !exists('g:expand_region_text_objects')
+
+" Init global vars
+function! expand_region#init()
+  if exists('g:expand_region_init') && g:expand_region_init
+    return
+  endif
+  let g:expand_region_init = 1
+
   " Dictionary of text objects that are supported by default. Note that some of
   " the text objects are not available in vanilla vim. '1' indicates that the
   " text object is recursive (think of nested parens or brackets)
-  let g:expand_region_text_objects = {
-        \ 'iw'  :0,
-        \ 'iW'  :0,
-        \ 'i"'  :0,
-        \ 'i''' :0,
-        \ 'i]'  :1,
-        \ 'ib'  :1,
-        \ 'iB'  :1,
-        \ 'il'  :0,
-        \ 'ip'  :0,
-        \ 'ie'  :0,
-        \}
-endif
+  let g:expand_region_text_objects = get(g:, 'expand_region_text_objects', {
+          \ 'iw'  :0,
+          \ 'iW'  :0,
+          \ 'i"'  :0,
+          \ 'i''' :0,
+          \ 'i]'  :1,
+          \ 'ib'  :1,
+          \ 'iB'  :1,
+          \ 'il'  :0,
+          \ 'ip'  :0,
+          \ 'ie'  :0,
+          \})
+
+  " Option to default to the select mode when selecting a new region
+  let g:expand_region_use_select_mode = get(g:, 'expand_region_use_select_mode', 0)
+endfunction
+call expand_region#init()
 
 " ==============================================================================
 " Global Functions
@@ -43,6 +54,12 @@ function! expand_region#custom_text_objects(...)
     endif
     call extend(g:expand_region_text_objects_{a:1}, a:2)
   endif
+endfunction
+
+" Returns whether we should perform the region highlighting use visual mode or
+" select mode
+function! expand_region#use_select_mode()
+  return g:expand_region_use_select_mode || index(split(s:saved_selectmode, ','), 'cmd') != -1
 endfunction
 
 " Main function
@@ -71,6 +88,11 @@ let s:cur_index = -1
 " end_pos: The result of getpos() on the ending position of the text object
 " length: The number of characters for the text object
 let s:candidates = []
+
+" This is used to save the user's selectmode setting. If the user's selectmode
+" contains 'cmd', then our expansion should result in the region selected under
+" select mode.
+let s:saved_selectmode = &selectmode
 
 " ==============================================================================
 " Functions
@@ -270,9 +292,24 @@ function! s:compute_candidates(cursor_pos)
   call s:remove_duplicate(s:candidates)
 endfunction
 
+" Perform the visual selection at the end. If the user wants to be left in
+" select mode, do so
+function! s:select_region()
+  exec 'normal! v'
+  exec 'normal '.s:candidates[s:cur_index].text_object
+  if expand_region#use_select_mode()
+    exec "normal! \<C-g>"
+  endif
+endfunction
+
 " Expand or shrink the visual selection to the next candidate in the text object
 " list.
 function! s:expand_region(mode, direction)
+  " Save the selectmode setting, and remove the setting so our 'v' command do
+  " not get interfered
+  let s:saved_selectmode = &selectmode
+  let &selectmode=""
+
   if s:should_compute_candidates(a:mode)
     call s:compute_candidates(getpos('.'))
   else
@@ -287,21 +324,26 @@ function! s:expand_region(mode, direction)
       let s:cur_index+=1
       " Associate the window view with the text object
       let s:candidates[s:cur_index].prev_winview = winsaveview()
-      exec 'normal! v'
-      exec 'normal '.s:candidates[s:cur_index].text_object
+      call s:select_region()
     endif
   else
     "Shrinking
     if s:cur_index <=# 0
-      " Do nothing, this will also return us to normal mode
+      " In visual mode, doing nothing here will return us to normal mode. For
+      " select mode, the following is needed.
+      if expand_region#use_select_mode()
+        exec "normal! gV"
+      endif
     else
-      let s:cur_index-=1
       " Restore the window view
       call winrestview(s:candidates[s:cur_index].prev_winview)
-      exec 'normal! v'
-      exec 'normal '.s:candidates[s:cur_index].text_object
+      let s:cur_index-=1
+      call s:select_region()
     endif
   endif
+
+  " Restore the selectmode setting
+  let &selectmode = s:saved_selectmode
 endfunction
 
 let &cpo = s:save_cpo
