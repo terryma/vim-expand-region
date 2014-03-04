@@ -146,10 +146,10 @@ function! s:get_candidate_dict(text_object)
   let winview = winsaveview()
 
   " Use ! as much as possible
-  exec 'normal! v'
-  exec 'silent! normal '.a:text_object
+  silent! exec 'normal! v'
+  silent! exec 'silent! normal '.a:text_object
   " The double quote is important
-  exec "normal! \<Esc>"
+  silent! exec "normal! \<Esc>"
 
   let selection = s:get_visual_selection()
   let ret = {
