@@ -4,7 +4,7 @@
 [vim-expand-region] is a Vim plugin that allows you to visually select increasingly larger regions of text using the same key combination. It is similar to features from other editors:
 
 - Emac's [expand region](https://github.com/magnars/expand-region.el)
-- IntelliJ's [syntax aware selection](http://www.jetbrains.com/idea/documentation/tips/#tips_code_editing)
+- IntelliJ's [syntax aware selection](https://www.jetbrains.com/help/idea/selecting-text-in-the-editor.html#extend_selection)
 - Eclipse's [select enclosing element](http://stackoverflow.com/questions/4264047/intellij-ctrlw-equivalent-shortcut-in-eclipse)
 
 <p align="center">
