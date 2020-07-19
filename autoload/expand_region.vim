@@ -305,6 +305,7 @@ endfunction
 " Expand or shrink the visual selection to the next candidate in the text object
 " list.
 function! s:expand_region(mode, direction)
+  let count = v:count1
   " Save the selectmode setting, and remove the setting so our 'v' command do
   " not get interfered
   let s:saved_selectmode = &selectmode
@@ -321,7 +322,7 @@ function! s:expand_region(mode, direction)
     if s:cur_index ==# len(s:candidates) - 1
       normal! gv
     else
-      let s:cur_index+=1
+      let s:cur_index = min([s:cur_index + count, len(s:candidates)])
       " Associate the window view with the text object
       let s:candidates[s:cur_index].prev_winview = winsaveview()
       call s:select_region()
@@ -337,7 +338,7 @@ function! s:expand_region(mode, direction)
     else
       " Restore the window view
       call winrestview(s:candidates[s:cur_index].prev_winview)
-      let s:cur_index-=1
+      let s:cur_index = max([s:cur_index - count, 0])
       call s:select_region()
     endif
   endif
